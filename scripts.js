@@ -60,7 +60,7 @@ async function generateQuestion() {
         return {
             question: `Where is ${correctPlace.name} located?`,
             answerChoices: shuffledAnswerChoices,
-            correctAnswer: correctAnswer
+            correctAnswer: correctAnswer,
         };
     } catch (error) {
         console.log(error);
@@ -97,6 +97,7 @@ function createQuestionElement(questionData, index) {
     const questionElement = document.createElement("div");
     questionElement.classList.add("question");
     questionElement.dataset.index = index;
+    questionElement.dataset.correctAnswer = questionData.correctAnswer;
 
     const questionText = document.createElement("h3");
     questionText.textContent = questionData.question;
@@ -125,6 +126,11 @@ function createQuestionElement(questionData, index) {
     return questionElement;
 }
 
+// Global variables to track the score and previous questions
+let correctAnswers = 0;
+let totalQuestions = 0;
+const previousQuestions = [];
+
 // Function to handle form submission
 async function handleSubmit(event) {
     event.preventDefault();
@@ -134,23 +140,36 @@ async function handleSubmit(event) {
     const scoreContainer = document.getElementById("score-container");
     const previousQuestionContainer = document.getElementById("previous-question-container");
 
-    // Calculate the score
-    let score = 0;
     questionElements.forEach((questionElement) => {
         const index = questionElement.dataset.index;
-        const selectedAnswer = questionElement.querySelector("input[name='answer']:checked")?.value;
+        const selectedAnswer = questionContainer.querySelector(`[data-index="${index}"] input[name='answer']:checked`)?.value;
         const correctAnswer = questionElement.dataset.correctAnswer;
 
-        if (selectedAnswer === correctAnswer) {
-            score++;
+        totalQuestions++;
+
+        const questionText = questionElement.querySelector("h3").textContent;
+        const questionResult = {
+            question: questionText,
+            correctAnswer: correctAnswer
+        };
+
+        if (selectedAnswer !== null && selectedAnswer === correctAnswer) {
+            correctAnswers++;
             questionElement.classList.add("correct");
+            questionResult.isCorrect = true;
         } else {
             questionElement.classList.add("incorrect");
+            questionResult.isCorrect = false;
         }
+
+        previousQuestions.push(questionResult);
     });
 
+    // Calculate the percentage of correct answers
+    const percentage = (correctAnswers / totalQuestions) * 100;
+
     // Display the score
-    const scoreText = `Score: ${score}/${questionElements.length}`;
+    const scoreText = `Score: ${correctAnswers}/${totalQuestions} (${percentage.toFixed(1)}%)`;
     const scoreElement = document.createElement("p");
     scoreElement.textContent = scoreText;
 
@@ -158,23 +177,24 @@ async function handleSubmit(event) {
     scoreContainer.innerHTML = "";
     scoreContainer.appendChild(scoreElement);
 
+    // Display the previous questions
+    previousQuestionContainer.innerHTML = "";
+    previousQuestions.forEach((questionResult) => {
+        const prevQuestionElement = document.createElement("p");
+        prevQuestionElement.classList.add("previous-question");
+        const questionResultText = `Question: ${questionResult.question} - Correct Answer: ${questionResult.correctAnswer}`;
+        prevQuestionElement.textContent = questionResultText;
+        if (questionResult.isCorrect) {
+            prevQuestionElement.classList.add("correct");
+        } else {
+            prevQuestionElement.classList.add("incorrect");
+        }
+        previousQuestionContainer.appendChild(prevQuestionElement);
+    });
+
     // Generate a new question
     const newQuestionData = await generateQuestion();
     if (newQuestionData) {
-        // Display previous question and correct answer
-        if (questionElements.length > 0) {
-            const prevQuestion = questionElements[questionElements.length - 1];
-            const prevQuestionText = prevQuestion.querySelector("h3").textContent;
-            const prevCorrectAnswer = prevQuestion.dataset.correctAnswer;
-            const prevQuestionResult = `Previous Question: ${prevQuestionText} - Correct Answer: ${prevCorrectAnswer}`;
-            const prevQuestionElement = document.createElement("p");
-            prevQuestionElement.classList.add("previous-question");
-            prevQuestionElement.textContent = prevQuestionResult;
-
-            // Append the previous question element to the previous question container
-            previousQuestionContainer.appendChild(prevQuestionElement);
-        }
-
         const newIndex = questionElements.length;
         const newQuestionElement = createQuestionElement(newQuestionData, newIndex);
         questionContainer.innerHTML = "";
@@ -183,6 +203,8 @@ async function handleSubmit(event) {
         questionContainer.innerHTML = "No more questions available.";
     }
 }
+
+
 
 
 // Generate all the questions when the page loads

@@ -50,9 +50,15 @@ p {
     font-family: 'Poppins', Arial, Helvetica, sans-serif;
 }
 
+.previous-question-container {
+    padding: 20px 0px;
+}
+
+
 .score-container p {
     color: white !important;
     font-family: 'Poppins', Arial, Helvetica, sans-serif;
+    padding-top: 10px;
 }
 
 
@@ -82,4 +88,35 @@ p {
     margin-bottom: 20px;
     border-radius: 5px;
     border: 1px solid #f5c6cb;
+}
+
+.footer {
+    position: fixed;
+    bottom: 0;
+    background-color: #70718785;
+    width: 100%;
+    padding: 20px;
+    color: white;
+    margin-top: 20px;
+
+}
+
+.me a {
+    float: right;
+    color: white;
+    text-decoration: none;
+
+}
+
+.me a:hover {
+    float: right;
+    color: rgb(216, 216, 216);
+    text-decoration: none;
+
+}
+
+
+
+.credits {
+    float: left;
 }
